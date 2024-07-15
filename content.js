@@ -1,16 +1,18 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.text) {
-    fetch('https://api.grammarapi.com/1.0/check', {
+    fetch('https://api.languagetool.org/v2/check', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer YOUR_API_KEY'
+        'Content-Type': 'application/x-www-form-urlencoded'
       },
-      body: JSON.stringify({ text: request.text })
+      body: `text=${encodeURIComponent(request.text)}&language=en-US`
     })
     .then(response => response.json())
     .then(data => {
-      let correctedText = data.correctedText;
+      let correctedText = request.text;
+      data.matches.forEach(match => {
+        correctedText = correctedText.replace(match.context.text, match.replacements[0].value);
+      });
       alert(`Corrected Text: ${correctedText}`);
     })
     .catch(error => console.error('Error:', error));
